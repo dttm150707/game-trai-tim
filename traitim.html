@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Game Hứng Trái Tim</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #fff5f7; font-family: 'Arial', sans-serif; touch-action: none; }
+        canvas { display: block; background: #ffe4e1; touch-action: none; }
+        #score { position: absolute; top: 20px; left: 20px; font-size: 24px; color: #ff4d6d; font-weight: bold; z-index: 10; }
+        #message { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; display: none; background: rgba(255,255,255,0.95);
+            padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 20; width: 80%;
+        }
+        button { background: #ff4d6d; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-size: 18px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div id="score">Trái tim: 0</div>
+    <div id="message">
+        <h1 style="color: #ff4d6d;">Chúc mừng Em! ❤️</h1>
+        <p>Em đã hứng đủ tình cảm của tui rồi đó!</p>
+        <p>Yêu Em nhất trên đời!</p>
+        <button onclick="location.reload()">Chơi lại</button>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Tự động điều chỉnh kích thước màn hình
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let score = 0;
+        let gameActive = true;
+        let hearts = [];
+        const player = {
+            width: 120,
+            height: 30,
+            x: canvas.width / 2 - 60,
+            y: canvas.height - 70,
+            color: '#ff4d6d'
+        };
+
+        function createHeart() {
+            if (!gameActive) return;
+            hearts.push({
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: -50,
+                size: Math.random() * 15 + 25,
+                speed: Math.random() * 2 + 3
+            });
+        }
+
+        function draw() {
+            if (!gameActive) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Vẽ thanh hứng (Player)
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(player.x, player.y, player.width, player.height, 15);
+            } else {
+                ctx.rect(player.x, player.y, player.width, player.height);
+            }
+            ctx.fill();
+            
+            ctx.fillStyle = "white";
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("HỨNG TÌNH YÊU", player.x + player.width/2, player.y + 20);
+
+            // Vẽ và cập nhật trái tim
+            ctx.textAlign = "left";
+            for (let i = hearts.length - 1; i >= 0; i--) {
+                let h = hearts[i];
+                ctx.font = ${h.size}px Arial;
+                ctx.fillText('❤️', h.x, h.y);
+                h.y += h.speed;
+
+                // Kiểm tra va chạm
+                if (h.y + h.size/2 > player.y && h.y < player.y + player.height &&
+                    h.x + h.size > player.x && h.x < player.x + player.width) {
+                    hearts.splice(i, 1);
+                    score++;
+                    document.getElementById('score').innerHTML = Trái tim: ${score};
+                    if (score >= 15) {
+                        gameActive = false;
+                        document.getElementById('message').style.display = 'block';
+                    }
+                }
+                // Xóa tim rơi quá màn hình
+                else if (h.y > canvas.height + 50) {
+                    hearts.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(draw);
+        }
+
+        // Điều khiển mượt mà cho cả máy tính và điện thoại
+        function move(e) {
+            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            player.x = clientX - player.width / 2;
+            // Giới hạn trong màn hình
+            if (player.x < 0) player.x = 0;
+            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+        }
+
+        window.addEventListener('mousemove', move);
+        window.addEventListener('touchmove', move, { passive: false });
+
+        setInterval(createHeart, 800);
+        draw();
+    </script>
+</body>
+</html>
+
